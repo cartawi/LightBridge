@@ -31,8 +31,12 @@ jobs:
   lightsail:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      LIGHTBRIDGE_SOURCE_REF: 4dac0c7e332cfe33d8a5c2c06543e5ed8cc90c93
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.LIGHTBRIDGE_SOURCE_REF }}
 
       - name: Prepare SSH key
         shell: bash
@@ -91,11 +95,11 @@ jobs:
         run: |
           set -euo pipefail
           docker build \
-            --build-arg COMMIT="${GITHUB_SHA}" \
+            --build-arg COMMIT="${LIGHTBRIDGE_SOURCE_REF}" \
             --build-arg DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            -t lightbridge-local:${GITHUB_SHA} \
+            -t lightbridge-local:${LIGHTBRIDGE_SOURCE_REF} \
             .
-          cid="$(docker create lightbridge-local:${GITHUB_SHA})"
+          cid="$(docker create lightbridge-local:${LIGHTBRIDGE_SOURCE_REF})"
           mkdir -p /tmp/lightbridge-release
           docker cp "$cid:/app/LightBridge" /tmp/lightbridge-release/LightBridge
           docker cp "$cid:/app/resources" /tmp/lightbridge-release/resources
