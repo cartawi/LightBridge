@@ -1,0 +1,223 @@
+name: Lightsail Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "probe or deploy"
+        required: true
+        default: "probe"
+        type: choice
+        options:
+          - probe
+          - deploy
+      host:
+        description: "Lightsail host"
+        required: true
+        default: "35.81.99.93"
+      user:
+        description: "SSH user"
+        required: true
+        default: "ubuntu"
+      port:
+        description: "SSH port"
+        required: true
+        default: "22"
+
+permissions:
+  contents: read
+
+jobs:
+  lightsail:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Prepare SSH key
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.LIGHTSAIL_SSH_KEY }}" > ~/.ssh/lightsail_key
+          chmod 600 ~/.ssh/lightsail_key
+
+      - name: Probe remote
+        shell: bash
+        run: |
+          set -euo pipefail
+          SSH_OPTS=(
+            -i ~/.ssh/lightsail_key
+            -p "${{ inputs.port }}"
+            -o IdentitiesOnly=yes
+            -o StrictHostKeyChecking=accept-new
+            -o ServerAliveInterval=15
+            -o ServerAliveCountMax=4
+            -o ConnectTimeout=30
+          )
+          ssh "${SSH_OPTS[@]}" "${{ inputs.user }}@${{ inputs.host }}" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          echo "== identity =="
+          hostname
+          whoami
+          uname -a
+          date -Is
+          echo "== services =="
+          systemctl list-units --type=service --all --no-pager | grep -Ei 'sub2api|lightbridge|nginx|caddy|docker|compose|claude|relay' || true
+          echo "== processes =="
+          ps -eo pid,ppid,cmd --sort=pid | grep -Ei 'sub2api|lightbridge|claude|relay|node|docker|nginx' | grep -v grep || true
+          echo "== ports =="
+          ss -ltnp 2>/dev/null | sed -n '1,80p' || true
+          echo "== docker =="
+          docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Ports}}\t{{.Status}}' 2>/dev/null || true
+          docker compose ls 2>/dev/null || true
+          echo "== candidate files =="
+          find /opt /home/ubuntu /var/www -maxdepth 4 \( -iname '*sub2api*' -o -iname '*lightbridge*' -o -iname '*claude*' -o -name 'docker-compose*.yml' -o -name '.env' \) 2>/dev/null | sort | sed -n '1,160p'
+          echo "== nginx sites =="
+          find /etc/nginx -maxdepth 3 -type f 2>/dev/null | sort | xargs -r grep -nEi 'service-router|3000|13000|proxy_pass|sub2api|lightbridge|claude' 2>/dev/null | sed -n '1,160p' || true
+          REMOTE
+
+      - name: Stop after probe
+        if: ${{ inputs.mode == 'probe' }}
+        run: echo "Probe completed."
+
+      - name: Build LightBridge image
+        if: ${{ inputs.mode == 'deploy' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build \
+            --build-arg COMMIT="${GITHUB_SHA}" \
+            --build-arg DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            -t lightbridge-local:${GITHUB_SHA} \
+            .
+          docker save lightbridge-local:${GITHUB_SHA} | gzip > /tmp/lightbridge-image.tar.gz
+
+      - name: Upload image
+        if: ${{ inputs.mode == 'deploy' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SSH_OPTS=(
+            -i ~/.ssh/lightsail_key
+            -P "${{ inputs.port }}"
+            -o IdentitiesOnly=yes
+            -o StrictHostKeyChecking=accept-new
+            -o ServerAliveInterval=15
+            -o ServerAliveCountMax=4
+            -o ConnectTimeout=30
+          )
+          scp "${SSH_OPTS[@]}" /tmp/lightbridge-image.tar.gz "${{ inputs.user }}@${{ inputs.host }}:/tmp/lightbridge-image.tar.gz"
+
+      - name: Deploy without deleting data
+        if: ${{ inputs.mode == 'deploy' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SSH_OPTS=(
+            -i ~/.ssh/lightsail_key
+            -p "${{ inputs.port }}"
+            -o IdentitiesOnly=yes
+            -o StrictHostKeyChecking=accept-new
+            -o ServerAliveInterval=15
+            -o ServerAliveCountMax=4
+            -o ConnectTimeout=30
+          )
+          ssh "${SSH_OPTS[@]}" "${{ inputs.user }}@${{ inputs.host }}" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          ts="$(date +%Y%m%d%H%M%S)"
+          image="lightbridge-local:${GITHUB_SHA:-manual}"
+
+          echo "== loading image =="
+          docker load < /tmp/lightbridge-image.tar.gz
+          loaded_image="$(docker image ls --format '{{.Repository}}:{{.Tag}}' | grep '^lightbridge-local:' | head -n 1)"
+          test -n "$loaded_image"
+
+          echo "== locating compose project =="
+          compose_file=""
+          for f in \
+            /opt/Sub2API/docker-compose.yml \
+            /opt/sub2api/docker-compose.yml \
+            /opt/LightBridge/docker-compose.yml \
+            /home/ubuntu/Sub2API/docker-compose.yml \
+            /home/ubuntu/sub2api/docker-compose.yml \
+            /home/ubuntu/LightBridge/docker-compose.yml
+          do
+            if [ -f "$f" ]; then compose_file="$f"; break; fi
+          done
+          if [ -z "$compose_file" ]; then
+            compose_file="$(find /opt /home/ubuntu -maxdepth 4 -name 'docker-compose*.yml' 2>/dev/null | head -n 1 || true)"
+          fi
+          if [ -z "$compose_file" ]; then
+            echo "No docker-compose file found; refusing to guess deployment layout." >&2
+            exit 20
+          fi
+          deploy_dir="$(dirname "$compose_file")"
+          echo "compose_file=$compose_file"
+
+          echo "== backup config and compose directory metadata =="
+          sudo tar -czf "/home/ubuntu/lightbridge-predeploy-config-${ts}.tgz" \
+            -C "$deploy_dir" \
+            --exclude='./postgres_data' \
+            --exclude='./redis_data' \
+            --exclude='./data/logs' \
+            . 2>/dev/null || true
+
+          cd "$deploy_dir"
+          compose_cmd=(docker compose -f "$compose_file")
+          echo "== current containers =="
+          "${compose_cmd[@]}" ps || true
+
+          app_service="$("${compose_cmd[@]}" config --services | grep -Ei 'sub2api|lightbridge|claude|relay|app|server' | head -n 1 || true)"
+          if [ -z "$app_service" ]; then
+            echo "Cannot identify application service from compose file; refusing to deploy." >&2
+            "${compose_cmd[@]}" config --services
+            exit 21
+          fi
+          echo "app_service=$app_service"
+
+          echo "== patch compose image only =="
+          cp "$compose_file" "${compose_file}.bak.${ts}"
+          python3 - "$compose_file" "$app_service" "$loaded_image" <<'PY'
+          import sys
+          from pathlib import Path
+
+          path = Path(sys.argv[1])
+          service = sys.argv[2]
+          image = sys.argv[3]
+          lines = path.read_text().splitlines()
+          out = []
+          in_services = False
+          in_target = False
+          target_indent = None
+          changed = False
+          for line in lines:
+              stripped = line.strip()
+              indent = len(line) - len(line.lstrip(" "))
+              if stripped == "services:":
+                  in_services = True
+                  in_target = False
+              elif in_services and stripped.endswith(":") and not stripped.startswith("-"):
+                  name = stripped[:-1]
+                  if indent == 2:
+                      in_target = name == service
+                      target_indent = indent if in_target else None
+              if in_target and stripped.startswith("image:"):
+                  out.append(" " * indent + f"image: {image}")
+                  changed = True
+                  continue
+              out.append(line)
+          if not changed:
+              print("Target service image field not found", file=sys.stderr)
+              sys.exit(1)
+          path.write_text("\n".join(out) + "\n")
+          PY
+
+          echo "== starting updated app, preserving volumes/data =="
+          "${compose_cmd[@]}" up -d --no-deps "$app_service"
+          sleep 8
+          "${compose_cmd[@]}" ps
+          "${compose_cmd[@]}" logs --tail=120 "$app_service"
+          curl -fsS --max-time 10 http://127.0.0.1:80/ >/dev/null || curl -fsS --max-time 10 http://127.0.0.1:8080/ >/dev/null || true
+          echo "backup=/home/ubuntu/lightbridge-predeploy-config-${ts}.tgz"
+          REMOTE
