@@ -156,6 +156,7 @@ func base64URLEncode(data []byte) string {
 // https://www.googleapis.com/auth/generative-language), which will surface as
 // "restricted_client" / "Unregistered scope(s)" errors during browser authorization.
 func EffectiveOAuthConfig(cfg OAuthConfig, oauthType string) (OAuthConfig, error) {
+	builtinClientID := builtinOAuthClientID()
 	effective := OAuthConfig{
 		ClientID:     strings.TrimSpace(cfg.ClientID),
 		ClientSecret: strings.TrimSpace(cfg.ClientSecret),
@@ -170,12 +171,7 @@ func EffectiveOAuthConfig(cfg OAuthConfig, oauthType string) (OAuthConfig, error
 	// Fall back to built-in Gemini CLI OAuth client when not configured.
 	// SECURITY: This repo does not embed the built-in client secret; it must be provided via env.
 	if effective.ClientID == "" && effective.ClientSecret == "" {
-		clientID := strings.TrimSpace(GeminiCLIOAuthClientID)
-		if clientID == "" {
-			if v, ok := os.LookupEnv(GeminiCLIOAuthClientIDEnv); ok {
-				clientID = strings.TrimSpace(v)
-			}
-		}
+		clientID := builtinClientID
 		secret := strings.TrimSpace(GeminiCLIOAuthClientSecret)
 		if secret == "" {
 			if v, ok := os.LookupEnv(GeminiCLIOAuthClientSecretEnv); ok {
@@ -194,7 +190,7 @@ func EffectiveOAuthConfig(cfg OAuthConfig, oauthType string) (OAuthConfig, error
 		return OAuthConfig{}, infraerrors.New(http.StatusBadRequest, "GEMINI_OAUTH_CLIENT_NOT_CONFIGURED", "OAuth client not configured: please set both client_id and client_secret (or leave both empty to use the built-in Gemini CLI client)")
 	}
 
-	isBuiltinClient := effective.ClientID == GeminiCLIOAuthClientID
+	isBuiltinClient := builtinClientID != "" && effective.ClientID == builtinClientID
 
 	if effective.Scopes == "" {
 		// Use different default scopes based on OAuth type
@@ -243,6 +239,18 @@ func EffectiveOAuthConfig(cfg OAuthConfig, oauthType string) (OAuthConfig, error
 	}
 
 	return effective, nil
+}
+
+func builtinOAuthClientID() string {
+	if v, ok := os.LookupEnv(GeminiCLIOAuthClientIDEnv); ok {
+		return strings.TrimSpace(v)
+	}
+	return strings.TrimSpace(GeminiCLIOAuthClientID)
+}
+
+// BuiltinOAuthClientID returns the configured built-in Gemini CLI OAuth client ID, if any.
+func BuiltinOAuthClientID() string {
+	return builtinOAuthClientID()
 }
 
 func hasRestrictedScope(scope string) bool {
