@@ -369,6 +369,19 @@
               </a>
             </template>
           </div>
+
+          <div
+            class="flex justify-end border-t border-gray-100 px-4 py-2 dark:border-dark-700"
+          >
+            <button
+              type="button"
+              class="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-primary-600 transition-colors hover:bg-primary-50 hover:text-primary-700 dark:text-primary-400 dark:hover:bg-primary-900/20 dark:hover:text-primary-300"
+              @click="openVersionControl"
+            >
+              <Icon name="swap" size="xs" :stroke-width="2" />
+              {{ t('version.control') }}
+            </button>
+          </div>
         </div>
       </transition>
     </template>
@@ -382,12 +395,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore, useAppStore } from '@/stores'
 import { performUpdate, restartService } from '@/api/admin/system'
 import Icon from '@/components/icons/Icon.vue'
 
 const { t } = useI18n()
+const router = useRouter()
 
 const props = defineProps<{
   version?: string
@@ -426,6 +441,11 @@ function toggleDropdown() {
 
 function closeDropdown() {
   dropdownOpen.value = false
+}
+
+function openVersionControl() {
+  closeDropdown()
+  router.push('/admin/version-control')
 }
 
 async function refreshVersion(force = true) {

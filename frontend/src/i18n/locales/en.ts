@@ -6509,7 +6509,24 @@ export default {
     restartRequired: 'Please restart the service to apply the update',
     restartNow: 'Restart Now',
     restarting: 'Restarting...',
-    retry: 'Retry'
+    retry: 'Retry',
+    control: 'Version Control',
+    controlDescription: 'View versions that are still published and choose a target version for an in-place install.',
+    buildType: 'Build Type',
+    releaseBuild: 'Release Build',
+    publishedVersions: 'Published Versions',
+    publishedVersionsDescription: 'Only published versions are shown. Installing replaces application files without deleting existing data.',
+    sourceBuildInstallDisabled: 'This is a source build, so in-app installation is unavailable.',
+    loadVersionsFailed: 'Failed to load versions',
+    noPublishedVersions: 'No published versions are available',
+    current: 'Current',
+    latest: 'Latest',
+    prerelease: 'Prerelease',
+    installed: 'Installed',
+    installVersion: 'Install Version',
+    installConfirmTitle: 'Confirm Version Install',
+    installConfirmMessage: 'Install {version} in place. Continue?',
+    dataSafeHint: 'This operation only replaces the application version. It does not delete or reset the database, configuration, or user data.'
   },
 
   // Recharge / Subscription Page

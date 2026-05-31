@@ -6664,7 +6664,24 @@ export default {
     restartRequired: '请重启服务以应用更新',
     restartNow: '立即重启',
     restarting: '正在重启...',
-    retry: '重试'
+    retry: '重试',
+    control: '版本控制',
+    controlDescription: '查看仍处于发布状态的版本，并选择目标版本进行覆盖式安装升级。',
+    buildType: '构建类型',
+    releaseBuild: '发布构建',
+    publishedVersions: '发布版本',
+    publishedVersionsDescription: '仅展示仍处于发布状态的版本。安装会覆盖当前程序文件，不会破坏原有数据。',
+    sourceBuildInstallDisabled: '当前是源码构建，不能在界面内执行覆盖安装。',
+    loadVersionsFailed: '加载版本列表失败',
+    noPublishedVersions: '暂无可安装的发布版本',
+    current: '当前',
+    latest: '最新',
+    prerelease: '预发布',
+    installed: '已安装',
+    installVersion: '安装此版本',
+    installConfirmTitle: '确认安装版本',
+    installConfirmMessage: '将覆盖式安装 {version}。是否继续？',
+    dataSafeHint: '此操作只替换应用程序版本，不会删除或重置现有数据库、配置和用户数据。'
   },
 
   // Recharge / Subscription Page
