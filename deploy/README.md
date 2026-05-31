@@ -379,8 +379,41 @@ sudo ./install.sh
 # Upgrade
 sudo ./install.sh upgrade
 
+# Migrate a legacy Sub2API binary/systemd deployment to LightBridge
+sudo ./install.sh migrate -v v0.0.1
+
 # Uninstall
 sudo ./install.sh uninstall
+```
+
+### Migrate from Sub2API
+
+Use this command when the server still has a legacy Sub2API binary deployment and you want to convert it into the official LightBridge systemd deployment:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/WilliamWang1721/LightBridge/main/deploy/install.sh | sudo bash -s -- migrate -v v0.0.1
+```
+
+The migration command detects:
+
+- `sub2api.service`
+- `/opt/sub2api/sub2api`
+- `/opt/sub2api/LightBridge`
+- `/usr/local/bin/sub2api`
+
+During migration, the script backs up the legacy deployment, copies existing config and runtime files into the LightBridge layout, installs `LightBridge.service`, disables the old `sub2api.service`, and starts LightBridge.
+
+Migration backups are stored under:
+
+```text
+/opt/LightBridge-migration-backups/<timestamp>
+```
+
+After migration, verify the service:
+
+```bash
+sudo systemctl status LightBridge
+sudo journalctl -u LightBridge -f
 ```
 
 ### Service Management
