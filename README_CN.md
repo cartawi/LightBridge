@@ -53,3 +53,7 @@ sudo systemctl restart LightBridge
 ```
 
 更完整的部署说明见 [deploy/README.md](deploy/README.md)。
+
+## 友情链接
+
+- [LinuxDO](https://linux.do/) - 一个友好的开发者社区。
