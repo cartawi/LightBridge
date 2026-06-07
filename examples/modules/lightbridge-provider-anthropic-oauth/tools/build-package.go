@@ -133,11 +133,21 @@ func writeRegistry(distDir, archivePath, archiveSHA string) error {
 	downloadURL := moduleDownloadURL(archivePath)
 	registry := map[string]any{
 		"modules": []map[string]any{{
-			"id":          moduleID,
-			"version":     moduleVersion,
-			"type":        "provider",
-			"name":        moduleName,
+			"id":      moduleID,
+			"version": moduleVersion,
+			"type":    "provider",
+			"name":    moduleName,
+			"name_i18n": map[string]string{
+				"en":    "Anthropic OAuth Provider",
+				"zh":    "Anthropic OAuth 提供商",
+				"zh-CN": "Anthropic OAuth 提供商",
+			},
 			"description": "Anthropic Claude OAuth provider module extracted from the legacy Sub2API Claude OAuth implementation.",
+			"description_i18n": map[string]string{
+				"en":    "Anthropic Claude OAuth provider module extracted from the legacy Sub2API Claude OAuth implementation.",
+				"zh":    "从旧版 Sub2API Claude OAuth 实现迁移的 Anthropic OAuth 提供商模块。",
+				"zh-CN": "从旧版 Sub2API Claude OAuth 实现迁移的 Anthropic OAuth 提供商模块。",
+			},
 			"downloadUrl": downloadURL,
 			"sha256":      archiveSHA,
 			"core":        ">=0.1.0 <0.2.0",

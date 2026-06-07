@@ -25,15 +25,36 @@ function ensureStyle() {
   document.head.appendChild(node);
 }
 
+const messages = {
+  en: {
+    providerTitle: "Anthropic OAuth Provider",
+    providerDescription: "Claude OAuth accounts created for this provider route through the module sidecar.",
+    accountTitle: "Anthropic OAuth Account",
+    accountDescription: "Generate a Claude OAuth URL, paste the callback code, or paste migrated OAuth tokens.",
+  },
+  zh: {
+    providerTitle: "Anthropic OAuth 提供商",
+    providerDescription: "通过该提供商创建的 Claude OAuth 账号会经由模块 sidecar 转发。",
+    accountTitle: "Anthropic OAuth 账号",
+    accountDescription: "生成 Claude OAuth 链接后粘贴回调 code，或直接粘贴迁移的 OAuth token。",
+  },
+};
+
+function t(key) {
+  const lang = (navigator.language || "").toLowerCase().startsWith("zh") ? "zh" : "en";
+  return messages[lang][key] || messages.en[key] || key;
+}
+
 const AnthropicOAuthProviderSettings = {
   name: "AnthropicOAuthProviderSettings",
   mounted() {
     ensureStyle();
   },
+  methods: { t },
   template: `
     <section class="lb-anthropic-provider">
-      <h2>Anthropic OAuth Provider</h2>
-      <p>Claude OAuth accounts created for this provider route through the module sidecar.</p>
+      <h2>{{ t("providerTitle") }}</h2>
+      <p>{{ t("providerDescription") }}</p>
     </section>
   `,
 };
@@ -56,6 +77,7 @@ const AnthropicOAuthAccountForm = {
     };
   },
   methods: {
+    t,
     updateSecret(key, value) {
       const current = this.modelValue || {};
       this.$emit("update:modelValue", {
@@ -110,8 +132,8 @@ const AnthropicOAuthAccountForm = {
   },
   template: `
     <section class="lb-anthropic-provider">
-      <h2>Anthropic OAuth Account</h2>
-      <p>Generate a Claude OAuth URL, paste the callback code, or paste migrated OAuth tokens.</p>
+      <h2>{{ t("accountTitle") }}</h2>
+      <p>{{ t("accountDescription") }}</p>
       <div class="row">
         <div>
           <label>OAuth Mode</label>

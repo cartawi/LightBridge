@@ -1,9 +1,17 @@
 apiVersion: lightbridge/v1alpha1
 id: openai
-name: OpenAI Provider
+name: OpenAI OAuth Provider
+name_i18n:
+  en: OpenAI OAuth Provider
+  zh: OpenAI OAuth 提供商
+  zh-CN: OpenAI OAuth 提供商
 type: provider
-version: 0.1.0
+version: 0.1.1
 description: OpenAI provider module adapted from the legacy sub2API OpenAI implementation.
+description_i18n:
+  en: OpenAI provider module adapted from the legacy sub2API OpenAI implementation.
+  zh: 从旧版 sub2API OpenAI 实现适配的 OpenAI OAuth 提供商模块。
+  zh-CN: 从旧版 sub2API OpenAI 实现适配的 OpenAI OAuth 提供商模块。
 core:
   compatible: ">=0.1.0 <0.2.0"
 backend:
@@ -14,11 +22,19 @@ frontend:
   entry: frontend/remoteEntry.js
   routes:
     - path: /admin/providers/openai-module
-      title: OpenAI Provider
+      title: OpenAI OAuth Provider
+      title_i18n:
+        en: OpenAI OAuth Provider
+        zh: OpenAI OAuth 提供商
+        zh-CN: OpenAI OAuth 提供商
       exposedModule: ./OpenAIProviderSettings
       requiresAdmin: true
   menu:
-    - title: OpenAI Provider
+    - title: OpenAI OAuth Provider
+      title_i18n:
+        en: OpenAI OAuth Provider
+        zh: OpenAI OAuth 提供商
+        zh-CN: OpenAI OAuth 提供商
       path: /admin/providers/openai-module
       group: Providers
       order: 10

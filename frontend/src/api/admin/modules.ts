@@ -1,5 +1,7 @@
 import { apiClient } from '../client'
 
+export type LocalizedText = Record<string, string>
+
 export interface InstalledModule {
   id: string
   name: string
@@ -16,9 +18,12 @@ export interface InstalledModule {
 export interface MarketplaceModule {
   id: string
   name: string
+  name_i18n?: LocalizedText
   type: string
   version: string
   summary?: string
+  description?: string
+  description_i18n?: LocalizedText
   downloadUrl?: string
   sha256?: string
 }

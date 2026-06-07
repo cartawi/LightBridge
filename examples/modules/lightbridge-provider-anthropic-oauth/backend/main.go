@@ -319,6 +319,11 @@ func metadataHandler(srv any, ctx context.Context, dec func(any) error, intercep
 			CredentialTypes: []string{"oauth", "setup_token", "session_key"},
 			Supports:        map[string]bool{"chat": true, "stream": true, "messages": true, "tools": true, "vision": true, "count_tokens": true},
 			Extra: map[string]any{
+				"display_name_i18n": map[string]string{
+					"en":    "Anthropic OAuth Provider",
+					"zh":    "Anthropic OAuth 提供商",
+					"zh-CN": "Anthropic OAuth 提供商",
+				},
 				"downstream_protocols": []string{"anthropic"},
 				"oauth_authorize_url":  claudeOAuthAuthorizeURL,
 				"oauth_client_id":      claudeOAuthClientID,

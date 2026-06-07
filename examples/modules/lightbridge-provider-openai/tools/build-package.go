@@ -23,8 +23,8 @@ import (
 
 const (
 	moduleID              = "openai"
-	moduleName            = "OpenAI Provider"
-	moduleVersion         = "0.1.0"
+	moduleName            = "OpenAI OAuth Provider"
+	moduleVersion         = "0.1.1"
 	defaultReleaseBaseURL = "https://github.com/WilliamWang1721/LightBridge/releases/download/module-migration-20260606"
 )
 
@@ -133,11 +133,21 @@ func writeRegistry(distDir, archivePath, archiveSHA string) error {
 	downloadURL := moduleDownloadURL(archivePath)
 	registry := map[string]any{
 		"modules": []map[string]any{{
-			"id":          moduleID,
-			"version":     moduleVersion,
-			"type":        "provider",
-			"name":        moduleName,
+			"id":      moduleID,
+			"version": moduleVersion,
+			"type":    "provider",
+			"name":    moduleName,
+			"name_i18n": map[string]string{
+				"en":    "OpenAI OAuth Provider",
+				"zh":    "OpenAI OAuth 提供商",
+				"zh-CN": "OpenAI OAuth 提供商",
+			},
 			"description": "OpenAI provider module adapted from the legacy sub2API OpenAI implementation.",
+			"description_i18n": map[string]string{
+				"en":    "OpenAI provider module adapted from the legacy sub2API OpenAI implementation.",
+				"zh":    "从旧版 sub2API OpenAI 实现适配的 OpenAI OAuth 提供商模块。",
+				"zh-CN": "从旧版 sub2API OpenAI 实现适配的 OpenAI OAuth 提供商模块。",
+			},
 			"downloadUrl": downloadURL,
 			"sha256":      archiveSHA,
 			"core":        ">=0.1.0 <0.2.0",

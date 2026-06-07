@@ -6706,7 +6706,7 @@ export default {
     moduleCount: '{count} 个模块',
     packageCount: '{count} 个包',
     noInstalled: '暂无已安装模块',
-    noInstalledHint: '从模块市场安装 OpenAI Provider 或其他可用模块。',
+    noInstalledHint: '从模块市场安装 OpenAI OAuth 提供商或其他可用模块。',
     noMarketplace: '暂无可用模块包',
     noMarketplaceHint: '请检查模块 registry 地址或网络连接。',
     versionValue: 'v{version}',

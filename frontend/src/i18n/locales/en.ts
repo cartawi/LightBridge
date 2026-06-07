@@ -6551,7 +6551,7 @@ export default {
     moduleCount: '{count} modules',
     packageCount: '{count} packages',
     noInstalled: 'No modules installed',
-    noInstalledHint: 'Install OpenAI Provider or another available module from the marketplace.',
+    noInstalledHint: 'Install OpenAI OAuth Provider or another available module from the marketplace.',
     noMarketplace: 'No marketplace packages',
     noMarketplaceHint: 'Check the module registry URL or network connectivity.',
     versionValue: 'v{version}',

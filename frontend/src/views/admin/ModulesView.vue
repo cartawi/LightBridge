@@ -54,7 +54,7 @@
           <div v-for="mod in installed" :key="mod.id" class="grid gap-4 px-5 py-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
-                <h3 class="truncate text-base font-semibold text-gray-900 dark:text-white">{{ mod.name || mod.id }}</h3>
+                <h3 class="truncate text-base font-semibold text-gray-900 dark:text-white">{{ installedName(mod) }}</h3>
                 <span class="module-pill">{{ moduleTypeLabel(mod.type) }}</span>
                 <span class="module-pill" :class="statusClass(mod.status)">{{ statusLabel(mod.status) }}</span>
               </div>
@@ -107,7 +107,7 @@
           <div v-for="mod in marketplace" :key="`${mod.id}-${mod.version}`" class="grid gap-4 px-5 py-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
-                <h3 class="truncate text-base font-semibold text-gray-900 dark:text-white">{{ mod.name || mod.id }}</h3>
+                <h3 class="truncate text-base font-semibold text-gray-900 dark:text-white">{{ marketplaceName(mod) }}</h3>
                 <span class="module-pill">{{ moduleTypeLabel(mod.type) }}</span>
               </div>
               <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-dark-400">
@@ -115,7 +115,7 @@
                 <span>{{ mod.id }}</span>
                 <span v-if="mod.sha256">{{ t('modules.signedPackage') }}</span>
               </div>
-              <p v-if="mod.summary" class="mt-2 text-sm text-gray-600 dark:text-dark-300">{{ mod.summary }}</p>
+              <p v-if="marketplaceDescription(mod)" class="mt-2 text-sm text-gray-600 dark:text-dark-300">{{ marketplaceDescription(mod) }}</p>
             </div>
 
             <button class="btn btn-primary px-4 py-2" :disabled="busyKey === `${mod.id}:${mod.version}`" @click="install(mod.id, mod.version)">
@@ -134,9 +134,9 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import Icon from '@/components/icons/Icon.vue'
-import modulesAPI, { type InstalledModule, type MarketplaceModule } from '@/api/admin/modules'
+import modulesAPI, { type InstalledModule, type LocalizedText, type MarketplaceModule } from '@/api/admin/modules'
 
-const { t, te } = useI18n()
+const { t, te, locale } = useI18n()
 
 const loading = ref(false)
 const error = ref('')
@@ -161,6 +161,36 @@ function statusLabel(status: string) {
 function moduleTypeLabel(type: string) {
   const key = `modules.type.${type}`
   return te(key) ? t(key) : type
+}
+
+function localizedText(primary: string | undefined, translations: LocalizedText | undefined, fallback: string) {
+  const current = String(locale.value || '').trim()
+  const candidates = [
+    current,
+    current.replace('_', '-'),
+    current.split(/[-_]/)[0],
+    current.toLowerCase().startsWith('zh') ? 'zh-CN' : '',
+    current.toLowerCase().startsWith('zh') ? 'zh' : '',
+    'en'
+  ].filter(Boolean)
+  for (const key of candidates) {
+    const value = translations?.[key]
+    if (typeof value === 'string' && value.trim()) return value.trim()
+  }
+  return primary?.trim() || fallback
+}
+
+function installedName(mod: InstalledModule) {
+  const manifest = (mod.manifest || {}) as { name_i18n?: LocalizedText }
+  return localizedText(mod.name, manifest.name_i18n, mod.id)
+}
+
+function marketplaceName(mod: MarketplaceModule) {
+  return localizedText(mod.name, mod.name_i18n, mod.id)
+}
+
+function marketplaceDescription(mod: MarketplaceModule) {
+  return localizedText(mod.summary || mod.description, mod.description_i18n, '')
 }
 
 function formatDate(value?: string) {

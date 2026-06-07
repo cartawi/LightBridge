@@ -7,7 +7,7 @@ on:
         description: 'Module release tag (for example module-migration-20260606)'
         required: true
         type: string
-        default: module-migration-20260606
+        default: module-anthropic-oauth-provider-v0.1.0
 
 permissions:
   contents: write
@@ -48,6 +48,11 @@ jobs:
           cp dist/ed25519.pub "${MODULE_DIST}/ed25519.pub"
           cp dist/registry.json "${MODULE_DIST}/registry-openai.json"
 
+          cd ../lightbridge-provider-anthropic-oauth
+          LIGHTBRIDGE_MODULE_RELEASE_BASE_URL="${RELEASE_BASE_URL}" go run ./tools/build-package.go
+          cp dist/lightbridge-module-*.tar.zst "${MODULE_DIST}/"
+          cp dist/registry.json "${MODULE_DIST}/registry-anthropic-oauth.json"
+
           cd ../lightbridge-provider-mock
           LIGHTBRIDGE_MODULE_RELEASE_BASE_URL="${RELEASE_BASE_URL}" go run ./tools/build-package.go
           cp dist/lightbridge-module-*.tar.zst "${MODULE_DIST}/"
@@ -55,6 +60,7 @@ jobs:
 
           jq -s '{modules: (map(.modules // []) | add)}' \
             "${MODULE_DIST}/registry-openai.json" \
+            "${MODULE_DIST}/registry-anthropic-oauth.json" \
             "${MODULE_DIST}/registry-mock.json" \
             > "${MODULE_DIST}/registry.json"
 

@@ -1,9 +1,17 @@
 apiVersion: lightbridge/v1alpha1
 id: anthropic-oauth
 name: Anthropic OAuth Provider
+name_i18n:
+  en: Anthropic OAuth Provider
+  zh: Anthropic OAuth 提供商
+  zh-CN: Anthropic OAuth 提供商
 type: provider
 version: 0.1.0
 description: Anthropic Claude OAuth provider module extracted from the legacy Sub2API Claude OAuth implementation.
+description_i18n:
+  en: Anthropic Claude OAuth provider module extracted from the legacy Sub2API Claude OAuth implementation.
+  zh: 从旧版 Sub2API Claude OAuth 实现迁移的 Anthropic OAuth 提供商模块。
+  zh-CN: 从旧版 Sub2API Claude OAuth 实现迁移的 Anthropic OAuth 提供商模块。
 core:
   compatible: ">=0.1.0 <0.2.0"
 backend:
@@ -15,10 +23,18 @@ frontend:
   routes:
     - path: /admin/providers/anthropic-oauth-module
       title: Anthropic OAuth Provider
+      title_i18n:
+        en: Anthropic OAuth Provider
+        zh: Anthropic OAuth 提供商
+        zh-CN: Anthropic OAuth 提供商
       exposedModule: ./AnthropicOAuthProviderSettings
       requiresAdmin: true
   menu:
     - title: Anthropic OAuth Provider
+      title_i18n:
+        en: Anthropic OAuth Provider
+        zh: Anthropic OAuth 提供商
+        zh-CN: Anthropic OAuth 提供商
       path: /admin/providers/anthropic-oauth-module
       group: Providers
       order: 11

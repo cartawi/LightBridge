@@ -36,6 +36,7 @@ const (
 )
 
 type PermissionSet map[string][]string
+type LocalizedText map[string]string
 
 type CoreSpec struct {
 	Compatible string `json:"compatible" yaml:"compatible"`
@@ -50,16 +51,18 @@ type FrontendSpec struct {
 	AccountForms []FrontendAccountFormSpec `json:"accountForms,omitempty" yaml:"accountForms,omitempty"`
 }
 type FrontendRouteSpec struct {
-	Path          string `json:"path" yaml:"path"`
-	Title         string `json:"title" yaml:"title"`
-	ExposedModule string `json:"exposedModule" yaml:"exposedModule"`
-	RequiresAdmin bool   `json:"requiresAdmin,omitempty" yaml:"requiresAdmin,omitempty"`
+	Path          string        `json:"path" yaml:"path"`
+	Title         string        `json:"title" yaml:"title"`
+	TitleI18n     LocalizedText `json:"title_i18n,omitempty" yaml:"title_i18n,omitempty"`
+	ExposedModule string        `json:"exposedModule" yaml:"exposedModule"`
+	RequiresAdmin bool          `json:"requiresAdmin,omitempty" yaml:"requiresAdmin,omitempty"`
 }
 type FrontendMenuSpec struct {
-	Title string `json:"title" yaml:"title"`
-	Path  string `json:"path" yaml:"path"`
-	Group string `json:"group,omitempty" yaml:"group,omitempty"`
-	Order int    `json:"order,omitempty" yaml:"order,omitempty"`
+	Title     string        `json:"title" yaml:"title"`
+	TitleI18n LocalizedText `json:"title_i18n,omitempty" yaml:"title_i18n,omitempty"`
+	Path      string        `json:"path" yaml:"path"`
+	Group     string        `json:"group,omitempty" yaml:"group,omitempty"`
+	Order     int           `json:"order,omitempty" yaml:"order,omitempty"`
 }
 type FrontendAccountFormSpec struct {
 	ProviderID    string `json:"providerId" yaml:"providerId"`
@@ -67,16 +70,19 @@ type FrontendAccountFormSpec struct {
 }
 
 type Manifest struct {
-	APIVersion   string        `json:"apiVersion" yaml:"apiVersion"`
-	ID           string        `json:"id" yaml:"id"`
-	Name         string        `json:"name" yaml:"name"`
-	Type         ModuleType    `json:"type" yaml:"type"`
-	Version      string        `json:"version" yaml:"version"`
-	Core         CoreSpec      `json:"core" yaml:"core"`
-	Capabilities []Capability  `json:"capabilities" yaml:"capabilities"`
-	Permissions  PermissionSet `json:"permissions,omitempty" yaml:"permissions,omitempty"`
-	Backend      *BackendSpec  `json:"backend,omitempty" yaml:"backend,omitempty"`
-	Frontend     *FrontendSpec `json:"frontend,omitempty" yaml:"frontend,omitempty"`
+	APIVersion      string        `json:"apiVersion" yaml:"apiVersion"`
+	ID              string        `json:"id" yaml:"id"`
+	Name            string        `json:"name" yaml:"name"`
+	NameI18n        LocalizedText `json:"name_i18n,omitempty" yaml:"name_i18n,omitempty"`
+	Description     string        `json:"description,omitempty" yaml:"description,omitempty"`
+	DescriptionI18n LocalizedText `json:"description_i18n,omitempty" yaml:"description_i18n,omitempty"`
+	Type            ModuleType    `json:"type" yaml:"type"`
+	Version         string        `json:"version" yaml:"version"`
+	Core            CoreSpec      `json:"core" yaml:"core"`
+	Capabilities    []Capability  `json:"capabilities" yaml:"capabilities"`
+	Permissions     PermissionSet `json:"permissions,omitempty" yaml:"permissions,omitempty"`
+	Backend         *BackendSpec  `json:"backend,omitempty" yaml:"backend,omitempty"`
+	Frontend        *FrontendSpec `json:"frontend,omitempty" yaml:"frontend,omitempty"`
 }
 
 type InstalledModule struct {

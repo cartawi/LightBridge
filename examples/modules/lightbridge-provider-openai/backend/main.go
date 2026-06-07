@@ -299,10 +299,15 @@ func metadataHandler(srv any, ctx context.Context, dec func(any) error, intercep
 	handler := func(context.Context, any) (any, error) {
 		return ProviderMetadata{
 			ID:              moduleID,
-			DisplayName:     "OpenAI Provider",
+			DisplayName:     "OpenAI OAuth Provider",
 			CredentialTypes: []string{"api_key", "oauth"},
 			Supports:        map[string]bool{"chat": true, "stream": true, "responses": true, "tools": true, "vision": true, "embeddings": true, "images": true},
 			Extra: map[string]any{
+				"display_name_i18n": map[string]string{
+					"en":    "OpenAI OAuth Provider",
+					"zh":    "OpenAI OAuth 提供商",
+					"zh-CN": "OpenAI OAuth 提供商",
+				},
 				"downstream_protocols": []string{"chat_completions", "openai-compatible"},
 				"oauth_authorize_url":  openAIAuthAuthorizeURL,
 				"oauth_client_id":      openAIClientID,

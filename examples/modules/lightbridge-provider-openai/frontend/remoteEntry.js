@@ -17,15 +17,36 @@ function ensureStyle() {
   document.head.appendChild(node);
 }
 
+const messages = {
+  en: {
+    providerTitle: "OpenAI OAuth Provider",
+    providerDescription: "OpenAI module provider is installed. Accounts created for this provider route through the module sidecar.",
+    accountTitle: "OpenAI OAuth Account",
+    accountDescription: "Use an OpenAI API key, paste migrated OAuth tokens, or generate an OAuth authorization URL and paste the callback code.",
+  },
+  zh: {
+    providerTitle: "OpenAI OAuth 提供商",
+    providerDescription: "OpenAI 模块提供商已安装。通过该提供商创建的账户会经由模块 sidecar 转发。",
+    accountTitle: "OpenAI OAuth 账号",
+    accountDescription: "使用 OpenAI API Key，粘贴迁移的 OAuth token，或生成 OAuth 授权链接后粘贴回调 code。",
+  },
+};
+
+function t(key) {
+  const lang = (navigator.language || "").toLowerCase().startsWith("zh") ? "zh" : "en";
+  return messages[lang][key] || messages.en[key] || key;
+}
+
 const OpenAIProviderSettings = {
   name: "OpenAIProviderSettings",
   mounted() {
     ensureStyle();
   },
+  methods: { t },
   template: `
     <section class="lb-openai-provider">
-      <h2>OpenAI Provider</h2>
-      <p>OpenAI module provider is installed. Accounts created for this provider route through the module sidecar.</p>
+      <h2>{{ t("providerTitle") }}</h2>
+      <p>{{ t("providerDescription") }}</p>
     </section>
   `,
 };
@@ -39,13 +60,8 @@ const OpenAIAccountForm = {
   mounted() {
     ensureStyle();
   },
-  data() {
-    return {
-      authorizeUrl: "",
-      redirectUri: "http://localhost:1455/auth/callback",
-    };
-  },
   methods: {
+    t,
     updateSecret(key, value) {
       const current = this.modelValue || {};
       this.$emit("update:modelValue", {
@@ -92,10 +108,16 @@ const OpenAIAccountForm = {
       this.updateExtra("type", "oauth");
     },
   },
+  data() {
+    return {
+      authorizeUrl: "",
+      redirectUri: "http://localhost:1455/auth/callback",
+    };
+  },
   template: `
     <section class="lb-openai-provider">
-      <h2>OpenAI Account</h2>
-      <p>Use an OpenAI API key, paste migrated OAuth tokens, or generate an OAuth authorization URL and paste the callback code.</p>
+      <h2>{{ t("accountTitle") }}</h2>
+      <p>{{ t("accountDescription") }}</p>
       <label>API Key</label>
       <input autocomplete="off" spellcheck="false" placeholder="sk-..." @input="updateSecret('api_key', $event.target.value)" />
       <label>OAuth Redirect URI</label>

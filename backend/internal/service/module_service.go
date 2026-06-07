@@ -84,38 +84,43 @@ func ProvideModuleService(
 }
 
 type ModuleUIManifestItem struct {
-	ModuleID     string                    `json:"moduleId"`
-	ModuleName   string                    `json:"moduleName"`
-	Version      string                    `json:"version"`
-	RemoteEntry  string                    `json:"remoteEntry"`
-	Routes       []ModuleUIRouteSpec       `json:"routes,omitempty"`
-	Menu         []ModuleUIMenuSpec        `json:"menu,omitempty"`
-	AccountForms []ModuleUIAccountFormSpec `json:"accountForms,omitempty"`
+	ModuleID       string                    `json:"moduleId"`
+	ModuleName     string                    `json:"moduleName"`
+	ModuleNameI18n modules.LocalizedText     `json:"moduleNameI18n,omitempty"`
+	Version        string                    `json:"version"`
+	RemoteEntry    string                    `json:"remoteEntry"`
+	Routes         []ModuleUIRouteSpec       `json:"routes,omitempty"`
+	Menu           []ModuleUIMenuSpec        `json:"menu,omitempty"`
+	AccountForms   []ModuleUIAccountFormSpec `json:"accountForms,omitempty"`
 }
 
 type ModuleUIRouteSpec struct {
-	Path          string `json:"path"`
-	Title         string `json:"title"`
-	RemoteEntry   string `json:"remoteEntry"`
-	ExposedModule string `json:"exposedModule"`
-	RequiresAdmin bool   `json:"requiresAdmin,omitempty"`
+	Path          string                `json:"path"`
+	Title         string                `json:"title"`
+	TitleI18n     modules.LocalizedText `json:"title_i18n,omitempty"`
+	RemoteEntry   string                `json:"remoteEntry"`
+	ExposedModule string                `json:"exposedModule"`
+	RequiresAdmin bool                  `json:"requiresAdmin,omitempty"`
 }
 
 type ModuleUIMenuSpec struct {
-	Title string `json:"title"`
-	Path  string `json:"path"`
-	Group string `json:"group,omitempty"`
-	Order int    `json:"order,omitempty"`
+	Title     string                `json:"title"`
+	TitleI18n modules.LocalizedText `json:"title_i18n,omitempty"`
+	Path      string                `json:"path"`
+	Group     string                `json:"group,omitempty"`
+	Order     int                   `json:"order,omitempty"`
 }
 
 type ModuleUIAccountFormSpec struct {
-	ProviderID    string `json:"providerId"`
-	ProviderName  string `json:"providerName,omitempty"`
-	ModuleID      string `json:"moduleId,omitempty"`
-	ModuleName    string `json:"moduleName,omitempty"`
-	ModuleVersion string `json:"moduleVersion,omitempty"`
-	RemoteEntry   string `json:"remoteEntry"`
-	ExposedModule string `json:"exposedModule"`
+	ProviderID       string                `json:"providerId"`
+	ProviderName     string                `json:"providerName,omitempty"`
+	ProviderNameI18n modules.LocalizedText `json:"providerNameI18n,omitempty"`
+	ModuleID         string                `json:"moduleId,omitempty"`
+	ModuleName       string                `json:"moduleName,omitempty"`
+	ModuleNameI18n   modules.LocalizedText `json:"moduleNameI18n,omitempty"`
+	ModuleVersion    string                `json:"moduleVersion,omitempty"`
+	RemoteEntry      string                `json:"remoteEntry"`
+	ExposedModule    string                `json:"exposedModule"`
 }
 
 type ModuleProviderAdapterStatus struct {
@@ -137,7 +142,9 @@ type ModuleMarketplaceEntry struct {
 	Version          string                `json:"version"`
 	Type             modules.ModuleType    `json:"type"`
 	Name             string                `json:"name,omitempty"`
+	NameI18n         modules.LocalizedText `json:"name_i18n,omitempty"`
 	Description      string                `json:"description,omitempty"`
+	DescriptionI18n  modules.LocalizedText `json:"description_i18n,omitempty"`
 	DownloadURL      string                `json:"downloadUrl"`
 	SHA256           string                `json:"sha256,omitempty"`
 	Signature        string                `json:"signature,omitempty"`
@@ -447,14 +454,17 @@ func validateMarketplaceEntry(entry ModuleMarketplaceEntry) error {
 		}
 	}
 	manifest := modules.Manifest{
-		APIVersion:   modules.ManifestAPIVersionV1Alpha1,
-		ID:           entry.ID,
-		Name:         entry.Name,
-		Type:         entry.Type,
-		Version:      entry.Version,
-		Core:         modules.CoreSpec{Compatible: entry.Core},
-		Capabilities: append([]modules.Capability(nil), entry.Capabilities...),
-		Permissions:  entry.Permissions,
+		APIVersion:      modules.ManifestAPIVersionV1Alpha1,
+		ID:              entry.ID,
+		Name:            entry.Name,
+		NameI18n:        entry.NameI18n,
+		Description:     entry.Description,
+		DescriptionI18n: entry.DescriptionI18n,
+		Type:            entry.Type,
+		Version:         entry.Version,
+		Core:            modules.CoreSpec{Compatible: entry.Core},
+		Capabilities:    append([]modules.Capability(nil), entry.Capabilities...),
+		Permissions:     entry.Permissions,
 	}
 	if manifest.Name == "" {
 		manifest.Name = entry.ID
@@ -958,15 +968,17 @@ func (s *ModuleService) UIManifest(ctx context.Context) ([]ModuleUIManifestItem,
 		frontend := item.Manifest.Frontend
 		remoteEntry := publicModuleAssetPath(item.ID, item.Version, frontend.Entry)
 		uiItem := ModuleUIManifestItem{
-			ModuleID:    item.ID,
-			ModuleName:  item.Name,
-			Version:     item.Version,
-			RemoteEntry: remoteEntry,
+			ModuleID:       item.ID,
+			ModuleName:     item.Name,
+			ModuleNameI18n: item.Manifest.NameI18n,
+			Version:        item.Version,
+			RemoteEntry:    remoteEntry,
 		}
 		for _, route := range frontend.Routes {
 			uiItem.Routes = append(uiItem.Routes, ModuleUIRouteSpec{
 				Path:          route.Path,
 				Title:         route.Title,
+				TitleI18n:     route.TitleI18n,
 				RemoteEntry:   remoteEntry,
 				ExposedModule: route.ExposedModule,
 				RequiresAdmin: route.RequiresAdmin,
@@ -974,21 +986,24 @@ func (s *ModuleService) UIManifest(ctx context.Context) ([]ModuleUIManifestItem,
 		}
 		for _, menu := range frontend.Menu {
 			uiItem.Menu = append(uiItem.Menu, ModuleUIMenuSpec{
-				Title: menu.Title,
-				Path:  menu.Path,
-				Group: menu.Group,
-				Order: menu.Order,
+				Title:     menu.Title,
+				TitleI18n: menu.TitleI18n,
+				Path:      menu.Path,
+				Group:     menu.Group,
+				Order:     menu.Order,
 			})
 		}
 		for _, form := range frontend.AccountForms {
 			uiItem.AccountForms = append(uiItem.AccountForms, ModuleUIAccountFormSpec{
-				ProviderID:    form.ProviderID,
-				ProviderName:  item.Name,
-				ModuleID:      item.ID,
-				ModuleName:    item.Name,
-				ModuleVersion: item.Version,
-				RemoteEntry:   remoteEntry,
-				ExposedModule: form.ExposedModule,
+				ProviderID:       form.ProviderID,
+				ProviderName:     item.Name,
+				ProviderNameI18n: item.Manifest.NameI18n,
+				ModuleID:         item.ID,
+				ModuleName:       item.Name,
+				ModuleNameI18n:   item.Manifest.NameI18n,
+				ModuleVersion:    item.Version,
+				RemoteEntry:      remoteEntry,
+				ExposedModule:    form.ExposedModule,
 			})
 		}
 		result = append(result, uiItem)
